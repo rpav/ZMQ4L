@@ -36,7 +36,7 @@ of numeric constants for enums and masks.  For instance:
 ```lisp
 ;; Masks use a list of keywords:
 (zmq4:send SOCK DATA '(:dontwait))
-(zmq4:send SOCK DATA '(:dontwait sndmore))
+(zmq4:send SOCK DATA '(:dontwait :sndmore))
 
 ;; Enums use a lone keyword:
 (zmq4:getsockopt SOCK :type)
