@@ -50,7 +50,7 @@
     c-data))
 
 (defun slow-copy-to-lisp (c-data lisp-data)
-  (c-with ((c-data :char :ptr c-data))
+  (c-with ((c-data :unsigned-char :ptr c-data))
     (loop for i from 0 below (length lisp-data)
           do (setf (aref lisp-data i) (c-data i))))
   lisp-data)

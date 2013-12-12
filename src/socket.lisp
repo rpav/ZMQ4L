@@ -172,46 +172,55 @@
   +zmq-curve-serverkey+
   +zmq-zap-domain+)
 
-(defun %getsockopt (socket option ptr)
-  (c-with ((len size-t))
-    (check-rc (zmq-getsockopt socket (enum-value 'zmq-sockopt option)
-                              ptr (len &)))
-    len))
+(defun %getsockopt (socket option ptr len)
+  (c-with ((c-len size-t))
+    (setf c-len len)
+    (check-rc (zmq-getsockopt socket (enum-value 'zmq-sockopt-get option)
+                              ptr (c-len &)))
+    c-len))
 
-(defun getsockopt-string (socket option)
-  (c-with ((pointer :pointer))
-    (%getsockopt socket option (pointer &))
-    (cffi:foreign-string-to-lisp pointer)))
+(defun getsockopt-string (socket option len)
+  (let ((len (or len 1024)))
+    (c-with ((str :char :count len))
+      (%getsockopt socket option (str &) len)
+      (cffi:foreign-string-to-lisp (str &)))))
 
 (defun getsockopt-int (socket option)
   (c-with ((i :int))
-    (%getsockopt socket option (i &))
+    (%getsockopt socket option (i &) (sizeof :int))
     i))
 
-(defun getsockopt-data (socket option)
-  (c-with ((pointer :pointer))
-    (let ((len (%getsockopt socket option (pointer &))))
-      (c-with ((data :char :ptr pointer))
+(defun getsockopt-data (socket option len)
+  (let ((len (or len 1024)))
+    (c-with ((data :unsigned-char :count len))
+      (let ((len (%getsockopt socket option (data &) len)))
         (let ((value (make-array len :element-type '(unsigned-byte 8))))
           ;; FIXME: slow
           (slow-copy-to-lisp (data &) value))))))
 
 (defun getsockopt-i64 (socket option)
   (c-with ((i64 int64-t))
-    (%getsockopt socket option (i64 &))
+    (%getsockopt socket option (i64 &) (sizeof 'int64-t))
     i64))
 
 (defun getsockopt-u64 (socket option)
   (c-with ((u64 uint64-t))
-    (%getsockopt socket option (u64 &))
+    (%getsockopt socket option (u64 &) (sizeof 'uint64-t))
     u64))
 
-(defun getsockopt (socket option)
+(defun getsockopt (socket option &optional len)
   (case option
     ((:identity :last-endpoint :plain-username :plain-password :zap-domain)
-     (getsockopt-string socket option))
+     (getsockopt-string socket option len))
     ((:curve-publickey :curve-secretkey :curve-serverkey)
-     (getsockopt-data socket option))
+     (cond
+       ((and (integerp len) (= len 41))
+        (getsockopt-string socket option len))
+       ((or (null len)
+            (and (integerp len)
+                 (= len 32)))
+        (getsockopt-data socket option 32))
+       (t (error "Invalid LEN for ~S: ~A" option len))))
     ((:maxmsgsize)
      (getsockopt-i64 socket option))
     ((:affinity)
@@ -228,7 +237,7 @@
 (defun recv (socket data &optional flags)
   "zmq_recv (length DATA) into DATA, which should be an array
 of (unsigned-byte 8)"
-  (c-with ((c-data :char :count (length data)))
+  (c-with ((c-data :unsigned-char :count (length data)))
     (check-rc
      (zmq-recv socket (c-data &) (length data)
                (mask-apply 'zmq-recvflags flags)))

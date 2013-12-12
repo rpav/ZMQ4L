@@ -27,7 +27,7 @@ actually allocates a message."
   "Make a copy of the data in MSG as a lisp octet vector.  Copies
 byte-by-byte."
   (let ((data (make-array (msg-size msg) :element-type '(unsigned-byte 8))))
-    (c-with ((c-data :char :ptr (zmq-msg-data msg)))
+    (c-with ((c-data :unsigned-char :ptr (zmq-msg-data msg)))
       (slow-copy-to-lisp (c-data &) data))
     data))
 
