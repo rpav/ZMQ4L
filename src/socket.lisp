@@ -348,3 +348,25 @@ Otherwise, this is the same as `DO-POLL`."
                                      (,event-var (mask-keywords 'zmq-pollevent
                                                                 (,cpi ,i :revents))))
                                  ,@body)))))))))
+
+(defun proxy (frontend backend &optional capture)
+  (zmq-proxy frontend backend capture)
+  ;; FIXME: this should probably still error
+  (values))
+
+(autowrap:define-bitmask-from-constants (zmq-event)
+  +zmq-event-connected+
+  +zmq-event-connect-delayed+
+  +zmq-event-connect-retried+
+  +zmq-event-listening+
+  +zmq-event-bind-failed+
+  +zmq-event-accepted+
+  +zmq-event-accept-failed+
+  +zmq-event-closed+
+  +zmq-event-close-failed+
+  +zmq-event-disconnected+
+  +zmq-event-all+)
+
+(defun socket-monitor (socket address event-mask)
+  (check-rc (zmq-socket-monitor socket address
+                                (mask-apply 'zmq-event event-mask))))

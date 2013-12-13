@@ -6,12 +6,11 @@ This is "yet another wrapper" for ZMQ.  This utilizes
 
 This is a nearly-complete wrap, excepting the following:
 
-* `STATIC-VECTORS` support (coming soon) for maximum efficiency.
+* `STATIC-VECTORS` support (coming soon) for maximum efficiency,
+  and thus `zmq_send_const()`
 * Functions documented as deprecated (`zmq_init()`, `zmq_recvmsg()`,
   etc).
 * Functions with no current use (basically `zmq_msg_set()`)
-* `zmq_proxy()`, `zmq_send_const()`, and `zmq_socket_monitor()`, all
-  coming soon.
 
 As of writing you will need the latest version of autowrap from the
 repository.

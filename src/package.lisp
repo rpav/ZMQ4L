@@ -24,6 +24,7 @@
    #:getsockopt-i64 #:getsockopt-u64 #:getsockopt
 
    #:send #:recv #:make-pollitem #:poll #:do-poll #:do-pollitem
+   #:proxy #:socket-monitor
 
    ;; Curve
    #:z85-encode #:z85-decode #:curve-keypair
