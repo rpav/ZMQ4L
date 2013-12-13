@@ -48,7 +48,7 @@ the rest of the API.
                                     (list sock2 :out ...))))
   (poll pollitem TIMEOUT))
 
-;; May return somethng like:
+;; May return something like:
 ;; ((#<SOCKET ...> :IN) ...)
 ```
 
@@ -132,4 +132,4 @@ For SBCL, you may build with the options `--with-sb-safepoint
 --with-sb-thruption --with-sb-wtimer` to enable foreign thread
 callbacks.  This is reportedly safe on Linux x86_64.
 
-`send-sv`, `recv-sv`, and `msg-init-sv` are be safe regardless.
+`send-sv`, `recv-sv`, and `msg-init-sv` are safe regardless.
