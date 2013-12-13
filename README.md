@@ -6,10 +6,8 @@ This is "yet another wrapper" for ZMQ.  This utilizes
 
 This is a nearly-complete wrap, excepting the following:
 
-* `STATIC-VECTORS` support (coming soon) for maximum efficiency,
-  and thus `zmq_send_const()`
-* Functions documented as deprecated (`zmq_init()`, `zmq_recvmsg()`,
-  etc).
+* Functions documented as deprecated (`zmq_init()`, `zmq_recvmsg()`, etc)
+* `zmq_send_const()` which is not particularly useful in the context of CL
 
 As of writing you will need the latest version of autowrap from the
 repository.
@@ -90,3 +88,48 @@ In this case, `POLLITEM-FORM` is a pollitem created by `make-pollitem`, and
 is evaluated *every iteration* before `zmq_poll()`.  Thus, you may use
 a variable and reassign it to a new pollitem, if for instance you wish
 to remove or add sockets.  Otherwise, the semantics are the same.
+
+### STATIC-VECTORS
+
+If desired, ZMQ4L supports
+[static-vectors](https://github.com/sionescu/static-vectors/).  To
+use, you may load the system `:zmq4l-with-sv`, which will load ZMQ4L,
+static-vectors, and the appropriate additional definitions.
+
+The following functions are added:
+
+* `send-sv SOCKET STATIC-VECTOR &optional FLAGS`: Like `send`, but the
+  contents are pulled directly from `STATIC-VECTOR`.  You must still
+  manage the static vector.  This is likely considerably faster than
+  `send`, because the contents are not copied byte-by-byte from a lisp
+  array to foreign.
+* `recv-sv SOCKET STATIC-VECTOR &optional FLAGS`: Like `recv`, but the
+  contents are written directly to `STATIC-VECTOR`.  You must still
+  manage the static vector.  This is likely considerably faster than
+  `send`, because the contents are not copied byte-by-byte from a
+  foreign array to lisp.
+* `msg-init-sv STATIC-VECTOR`: Like `msg-init` with a standard array,
+  except this uses `memcpy()` rather than a slower byte-by-byte copy
+  from lisp to a foreign array.  You must still manage the static
+  vector.
+* `msg-init-data STATIC-VECTOR &optional FREE-FUN`: Create a message,
+  using the data in `STATIC-VECTOR` directly.  By default, `FREE-FUN`
+  is `free-static-vector`, which will free the static vector.  This
+  means that after `MSG-CLOSE` or `MSG-SEND`, the static-vector *must
+  not be accessed further*, because it may be freed immediately.
+  Caveats apply, see below.
+
+These functions will not be defined if `:zmq4l-with-sv` is not loaded,
+but the symbols will be exported.
+
+**Caveats:**  The use of `msg-init-data` *requires* lisp functions be
+callable in *arbitrary foreign threads*, including those your lisp may
+not know about.  By default, SBCL *does not support this* except on
+Windows.  CCL does support this.  I am not sure of the status of other
+lisps; *use at your own discretion*.
+
+For SBCL, you may build with the options `--with-sb-safepoint
+--with-sb-thruption --with-sb-wtimer` to enable foreign thread
+callbacks.  This is reportedly safe on Linux x86_64.
+
+`send-sv`, `recv-sv`, and `msg-init-sv` are be safe regardless.

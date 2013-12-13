@@ -32,4 +32,7 @@
    ;; Messages
    #:msg-init #:msg-size #:msg-data #:msg-string #:msg-copy
    #:msg-move #:msg-close #:msg-send #:msg-recv #:msg-set
+
+   ;; static-vectors additions
+   #:send-sv #:recv-sv #:msg-init-sv #:msg-init-data
    ))
