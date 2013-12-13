@@ -97,6 +97,9 @@ flags for zmq_msg_recv()."
 (defun msg-get (msg prop)
   (check-rc (zmq-msg-get msg (enum-value 'zmq-getprop prop))))
 
+(defun msg-set (msg prop value)
+  (check-rc (zmq-msg-set msg prop value)))
+
 (defun msg-more-p (msg)
   "Check whether there are further parts to message `MSG`."
   (= 1 (check-rc (zmq-msg-more msg))))

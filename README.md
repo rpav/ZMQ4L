@@ -10,7 +10,6 @@ This is a nearly-complete wrap, excepting the following:
   and thus `zmq_send_const()`
 * Functions documented as deprecated (`zmq_init()`, `zmq_recvmsg()`,
   etc).
-* Functions with no current use (basically `zmq_msg_set()`)
 
 As of writing you will need the latest version of autowrap from the
 repository.

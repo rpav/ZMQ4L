@@ -31,5 +31,5 @@
 
    ;; Messages
    #:msg-init #:msg-size #:msg-data #:msg-string #:msg-copy
-   #:msg-move #:msg-close #:msg-send #:msg-recv
+   #:msg-move #:msg-close #:msg-send #:msg-recv #:msg-set
    ))
