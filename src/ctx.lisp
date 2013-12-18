@@ -41,5 +41,5 @@
                    for val in (cdr option-pairs) by #'cddr
                    collect `(ctx-set ,ctx ,opt ,val))
            ,@body)
-      (ctx-shutdown ctx))))
+      (ctx-shutdown ,ctx))))
 

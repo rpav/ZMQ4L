@@ -370,3 +370,33 @@ Otherwise, this is the same as `DO-POLL`."
 (defun socket-monitor (socket address event-mask)
   (check-rc (zmq-socket-monitor socket address
                                 (mask-apply 'zmq-event event-mask))))
+
+(defmacro with-socks ((&rest sockets) ctx &body body)
+  "Each socket definition is in the following form:
+
+```lisp
+    (SOCK-VAR TYPE &key CONNECT BIND)
+```
+
+`CONNECT` and `BIND` are both optional and mutually exclusive. Sockets
+are closed at the end of the block."
+  (let ((sock-names (mapcar #'car sockets)))
+    (once-only (ctx)
+      `(let (,@sock-names)
+         (unwind-protect
+              (progn
+                ,@(loop for s in sockets
+                        collect
+                        (destructuring-bind (sock-name sock-type
+                                             &key connect bind) s
+                          (if (and connect bind)
+                              (error "You cannot both CONNECT and BIND a socket.")
+                              `(progn
+                                 (setf ,sock-name (socket ,ctx ,sock-type))
+                                 ,@(when connect
+                                     `((connect ,sock-name ,connect)))
+                                 ,@(when bind
+                                     `((bind ,sock-name ,bind)))))))
+                ,@body)
+           ,@(loop for sock-name in sock-names
+                   collect `(when ,sock-name (close-socket ,sock-name))))))))

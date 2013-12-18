@@ -26,6 +26,8 @@
    #:send #:recv #:make-pollitem #:poll #:do-poll #:do-pollitem
    #:proxy #:socket-monitor
 
+   #:with-socks
+
    ;; Curve
    #:z85-encode #:z85-decode #:curve-keypair
 
