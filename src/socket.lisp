@@ -228,11 +228,17 @@
     (t (getsockopt-int socket option))))
 
 (defun send (socket data &optional flags)
-  (c-with ((c-data :char :count (length data)))
-    ;; This is slow; use the STATIC-VECTORS stuff if you want fast
-    (slow-copy-to-c data (c-data &))
-    (check-rc (zmq-send socket (c-data &) (length data)
-                        (mask-apply 'zmq-sendflags flags)))))
+  (etypecase data
+    (string
+     (cffi:with-foreign-string ((string len) data)
+       (check-rc (zmq-send socket string (1- len)
+                           (mask-apply 'zmq-sendflags flags)))))
+    (array
+     (c-with ((c-data :char :count (length data)))
+       ;; This is slow; use the STATIC-VECTORS stuff if you want fast
+       (slow-copy-to-c data (c-data &))
+       (check-rc (zmq-send socket (c-data &) (length data)
+                           (mask-apply 'zmq-sendflags flags)))))))
 
 (defun recv (socket data &optional flags)
   "zmq_recv (length DATA) into DATA, which should be an array
