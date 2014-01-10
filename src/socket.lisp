@@ -95,7 +95,7 @@
 (defun setsockopt-string (socket option value)
   ;; value is declared as void* so autowrap doesn't infer :string
   (cffi:with-foreign-string ((string len) value)
-    (%setsockopt socket option string len)))
+    (%setsockopt socket option string (1- len))))
 
 (defun setsockopt-int (socket option value)
   (c-with ((i :int))
@@ -124,11 +124,11 @@
      (setsockopt-u64 socket option value))
     ((:maxmsgsize)
      (setsockopt-i64 socket option value))
-    ((:subscribe :unsubscribe :identity :tcp-accept-filter)
+    ((:subscribe :unsubscribe :tcp-accept-filter)
      (setsockopt-data socket option value))
     ((:plain-username :plain-password :zap-domain)
      (setsockopt-string socket option value))
-    ((:curve-publickey :curve-secretkey :curve-serverkey)
+    ((:identity :curve-publickey :curve-secretkey :curve-serverkey)
      (etypecase value
        (string (setsockopt-string socket option value))
        (array (setsockopt-data socket option value))))
@@ -388,11 +388,16 @@ are closed at the end of the block."
                 ,@(loop for s in sockets
                         collect
                         (destructuring-bind (sock-name sock-type
-                                             &key connect bind) s
+                                             &key connect bind sockopt) s
                           (if (and connect bind)
                               (error "You cannot both CONNECT and BIND a socket.")
                               `(progn
                                  (setf ,sock-name (socket ,ctx ,sock-type))
+                                 ,@(when sockopt
+                                     (loop for i in sockopt
+                                           collect
+                                           `(setsockopt ,sock-name
+                                                        ,(car i) ,(cadr i))))
                                  ,@(when connect
                                      `((connect ,sock-name ,connect)))
                                  ,@(when bind
