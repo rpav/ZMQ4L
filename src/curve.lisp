@@ -16,7 +16,7 @@
   (let ((data-len (truncate (* 0.8 (length string)))))
     (c-with ((c-data :char :count data-len))
       (inhibit-string-conversion
-        (check-null (zmq-z85-decode (c-data &) string)))
+        (check-null (nth-value 1 (zmq-z85-decode (c-data &) string))))
       (let ((data (make-array data-len :element-type '(unsigned-byte 8))))
         ;; FIXME: slow
         (loop for i from 0 below data-len
